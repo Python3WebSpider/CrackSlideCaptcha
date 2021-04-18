@@ -3,7 +3,7 @@ import cv2
 GAUSSIAN_BLUR_KERNEL_SIZE = (5, 5)
 GAUSSIAN_BLUR_SIGMA_X = 0
 CANNY_THRESHOLD1 = 200
-CANNY_THRESHOLD2 = 500
+CANNY_THRESHOLD2 = 450
 
 
 def get_gaussian_blur_image(image):
@@ -32,7 +32,9 @@ def get_arc_length_threshold(image_width, image_height):
 
 
 def get_offset_threshold(image_width):
-    return 0.2 * image_width, 0.85 * image_width
+    offset_min = 0.2 * image_width
+    offset_max = 0.85 * image_width
+    return offset_min, offset_max
 
 
 def main():
@@ -40,13 +42,14 @@ def main():
     image_height, image_width, _ = image_raw.shape
     image_gaussian_blur = get_gaussian_blur_image(image_raw)
     image_canny = get_canny_image(image_gaussian_blur)
+    contours = get_contours(image_canny)
     cv2.imwrite('image_canny.png', image_canny)
     cv2.imwrite('image_gaussian_blur.png', image_gaussian_blur)
     contour_area_min, contour_area_max = get_contour_area_threshold(image_width, image_height)
     arc_length_min, arc_length_max = get_arc_length_threshold(image_width, image_height)
     offset_min, offset_max = get_offset_threshold(image_width)
     offset = None
-    for contour in get_contours(image_canny):
+    for contour in contours:
         x, y, w, h = cv2.boundingRect(contour)
         if contour_area_min < cv2.contourArea(contour) < contour_area_max and \
                 arc_length_min < cv2.arcLength(contour, True) < arc_length_max and \
@@ -59,3 +62,4 @@ def main():
 
 if __name__ == '__main__':
     main()
+
